@@ -53,39 +53,39 @@ module.exports = function (auth_type) {
                     logjs.debug('Отправка уведомления через HTTP-протокол. ' + data.result.total + ' шт.');
                     res.user = { c_login: 'root', id: 1 };
 
-                    var box = { length: 0 };
+                    var box = {length:0};
 
-                    for (var i = 0; i < records.length; i++) {
-                        var record = records[i];
-                        if (!box[record.fn_user_to]) {
+                    for(var i = 0; i < records.length; i++) { 
+                        var record = records[i]; 
+                        if(!box[record.fn_user_to]) {
                             box[record.fn_user_to] = [];
                             box.length++;
                         }
                         box[record.fn_user_to].push(record);
                     }
-                    var userCount = 0;
-                    for (var i in box) {
-                        if (i == 'length') {
+
+                    for(var i in box) { 
+                        if(i == 'length') {
                             continue;
                         }
-                        var records = box[i];
+                        var records = box[i]; 
                         var record = records[0];
 
                         var users = userCollection.getUsers(record.fn_user_to);
-                        if (users.length > 0) {
+                        if (users.length > 0) { 
 
                             // обновление уведомлений
                             db.provider.db().query('update core.cd_notifications set b_sended = true where fn_user_to = $1 and b_sended = false;', [record.fn_user_to], function (err, rows, time, options) {
                                 if (err) {
                                     logjs.error(err.toString());
-                                }
+                                } 
                             });
 
                             var pkg = packager.write();
                             pkg.meta(false, 'mail', 'v2', Date.now().toString());
 
                             var items = [];
-                            if (records.length > 4) {
+                            if(records.length > 4) {
                                 var item = {
                                     fn_user_to: record.fn_user_to,
                                     fn_user_from: res.user.id,
@@ -95,9 +95,8 @@ module.exports = function (auth_type) {
                                     c_title: 'Уведомление',
                                     d_date: record.d_date
                                 };
-                                items.push(item);
                             } else {
-                                for (var r in records) {
+                                for(var r in records) {
                                     var rec = records[r];
                                     var item = {
                                         fn_user_to: rec.fn_user_to,
@@ -114,22 +113,20 @@ module.exports = function (auth_type) {
 
                             pkg.blockTo('to0', { action: 'cd_notifications', method: 'Add', data: [items], tid: 0, type: 'rpc' });
                             pkg.blockFrom('from0', {
-                                "meta": { "success": true, "msg": "ok" },
-                                "code": 200,
-                                "result": { "records": items, "total": 1 },
-                                "time": 7,
-                                "tid": 0, "type": "rpc", "method": "Add", "action": "cd_notifications", "rpcTime": 10
-                            });
+                                    "meta":{"success":true,"msg":"ok"},
+                                    "code":200,
+                                    "result":{"records":items,"total":1},
+                                    "time":7,
+                                    "tid":0,"type":"rpc","method":"Add","action":"cd_notifications","rpcTime":10});
 
                             for (var j = 0; j < users.length; j++) {
                                 var user = users[j];
-                                userCount++;
-                                user.emit('mailer-from', pkg.flush(0, 'NML'));
+                                user.emit('mailer-from', pkg.flush(0, 'ZIP'));
                             }
                         }
                     }
 
-                    res.send('SUCCESS (' + data.result.total + ' for ' + userCount + ')');
+                    res.send('SUCCESS (' + data.result.total + ')');
                 } else {
                     res.send('SUCCESS');
                 }

@@ -44,30 +44,18 @@ exports.getUser = function (userName, password, callback) {
                 callback(user, null);
             } else {
                 var data = data.result.records[0];
-                if (data.s_salt || data.b_pgcrypto == true) {
-                    function crypto(innerCallback) {
-                        if(data.b_pgcrypto == true) {
-                            db.provider.db().query("select crypt('" + password + "', '" + data.s_hash + "');", null, (err, rows, time) => {
-                                innerCallback(rows.rows[0].crypt == data.s_hash);
-                            });
-                        } else {
-                            innerCallback(saltHash.check(password, data.s_salt, data.s_hash));
-                        }
+                if (data.s_salt) {
+                    var valid = saltHash.check(password, data.s_salt, data.s_hash);
+                    if (valid == true) {
+                        return callback(data, null);
                     }
-                    crypto((valid)=> {
-                        if (valid == true) {
-                            return callback(data, null);
-                        } else {
-                            callback(user, data);
-                        }
-                    });
                 } else {
                     if (data.c_password == password) {
                         return callback(data, null);
-                    } else {
-                        callback(user, data);
                     }
                 }
+
+                callback(user, data);
             }
         });
     }
@@ -105,32 +93,18 @@ exports.passwordReset = function (userName, password, callback) {
                 callback(new Error('Пользователь ' + userName + ' не найден'));
             } else {
                 var data = data.result.records[0];
+                var pswData = saltHash.generate(password);
 
-                function crypto(innerCallback) {
-                    if(data.b_pgcrypto == true) {
-                        db.provider.db().query("select crypt('" + password + "', gen_salt('bf', 8));", null, (err, rows, time) => {
-                            innerCallback({
-                                passwordHash: rows.rows[0].crypt,
-                                salt: ''
-                            });
-                        });
+                db.pd_users().Update({
+                    id: data.id,
+                    s_salt: pswData.salt,
+                    s_hash: pswData.passwordHash
+                }, function (data) {
+                    if (data.meta.success == false) {
+                        callback(new Error('Ошибка обновления пользователя: ' + data.meta.msg));
                     } else {
-                        innerCallback(saltHash.generate(password));
+                        callback(null, pswData);
                     }
-                }
-
-                crypto((pswData) => {
-                    db.pd_users().Update({
-                        id: data.id,
-                        s_salt: pswData.salt,
-                        s_hash: pswData.passwordHash
-                    }, function (data) {
-                        if (data.meta.success == false) {
-                            callback(new Error('Ошибка обновления пользователя: ' + data.meta.msg));
-                        } else {
-                            callback(null, pswData);
-                        }
-                    });
                 });
             }
         });

@@ -10,7 +10,9 @@ var path = require('path');
 var favicon = require('serve-favicon');
 var cors = require('cors');
 var join = path.join;
+var fileManager = require('mobnius-rpc-file-manager');
 var fileUpload = require('express-fileupload');
+var db = require('./modules/dbcontext');
 var rpc = require('./modules/rpc/index');
 var exists = require('./router/exists');
 var reset = require('./router/reset.js');
@@ -20,6 +22,7 @@ var utils = require('./modules/utils');
 var fs = require('fs');
 var catalogUtil = require('./modules/catalog-util');
 var args = require("args-parser")(process.argv);
+var keygen = require('./modules/authorize/keygen');
 
 var app = express();
 var vPath = utils.getVirtualDirPath();
@@ -60,8 +63,9 @@ app.use(vPath, rpc('basic'));
 app.use(vPath, require('./router/synchronization')('basic'));
 app.use(vPath + '/file', require('./router/filer')('basic'));
 app.use(vPath + '/send', require('./router/send')('basic'));
-app.use(vPath + '/users', require('./router/users')('basic'));
-app.use(vPath + '/download', require('./router/download')('basic'));
+
+// настройки файлового менеджера
+app.use(vPath + '/file-manager', fileManager(join(__dirname, 'public'), db));
 
 // проверка на доступность сервера
 app.use(vPath + '/exists', exists());
@@ -70,6 +74,11 @@ app.use(vPath + '/upload', upload());
 
 // connect
 app.use(vPath + '/connect', require('./router/connect')('basic'));
+
+app.get(vPath + '/activate', function(req, res) {
+    keygen.writeKey(req.query.key);
+    res.send('OK');
+});
 
 app.use(vPath + '/download', function (request, response) {
     response.redirect(vPath + '/upload/version-file');

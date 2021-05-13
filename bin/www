@@ -17,6 +17,7 @@ var port = normalizePort(args.port);
 var utils = require('../modules/utils');
 
 init(function() {  // инициализация схемы БД
+    var accessesCacher = require('../modules/rpc/modules/accesses-cacher');
 
     var app = require('../index');
     var vPath = utils.getVirtualDirPath();

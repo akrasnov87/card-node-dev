@@ -10,6 +10,7 @@ var join = require('path').join;
 var conf = require('node-config')(join(__dirname, '../'));
 var logjs = require('../log');
 var db = require('../dbcontext');
+var keygen = require('./keygen');
 
 /**
  * установка текущего пользователя
@@ -22,7 +23,7 @@ exports.user = function (skip) {
         var data = req.headers[conf.get('authorization_header')] || req.query[conf.get('authorization_header')];
         if (data) {
             var userInfo = [];
-            if (data.indexOf('OpenToken ') == 0) {
+            if(data.indexOf('OpenToken ') == 0) {
                 var token = data.replace('OpenToken ', '');
                 userInfo = token.split(':');
             } else {
@@ -108,7 +109,8 @@ exports.authorize = function (req, res) {
                         claims: user.c_claims,
                         userName: user.c_user_name,
                         disabled: user.b_disabled
-                    }
+                    },
+                    activate: keygen.check() // true - система активации, false - идет пробный период, undefined - активация истекла
                 });
             }
         }

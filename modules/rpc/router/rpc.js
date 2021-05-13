@@ -18,6 +18,7 @@ var db = require('../../dbcontext');
 var converter = require('json-2-csv');
 var accessFilter = require('../modules/access-filter');
 var utils = require('../../utils');
+var keygen = require('../../authorize/keygen');
 
 module.exports = function (auth_type) {
     var authType = authUtil.getAuthModule(auth_type);
@@ -47,18 +48,33 @@ function post_rpc(req, res) {
     let isCsv = req.params.format == 'csv';
     let table = req.params.table;
 
-    if (req.headers['content-type'].indexOf('text/csv') >= 0) {
+    if(keygen.check() == undefined) {
+        return res.json([{
+            meta: {
+                success: false,
+                msg: 'Система не активирована'
+            },
+            code: 125,
+            tid: 0,
+            type: "rpc",
+            method: '',
+            action: '',
+            host: utils.getCurrentHost()
+        }]);
+    }
+
+    if(req.headers['content-type'].indexOf('text/csv') >= 0) {
         // значит тип импорт данных
         var csv = '';
         req.on('data', chunk => { csv += chunk.toString() });
 
         req.on('end', () => {
             var schema = global.schemas;
-            var item = { action: table, method: 'Add', data: [], tid: 0, type: 'rpc' };
+            var item = { action: table, method: 'Add', data:[], tid: 0, type:'rpc' };
             accessFilter.filter(item, res.user.id, schema, function (err, rows) {
                 if (rows) {
-                    converter.csv2json(csv.replace(/,\r/g, ',null').replace(/\r/g, ''), (err, array) => {
-                        if (err) {
+                    converter.csv2json(csv.replace(/,\r/g, ',null').replace(/\r/g, ''), (err, array)=>{
+                        if(err) {
                             res.send(err);
                         } else {
                             var sessionState = {
@@ -68,7 +84,7 @@ function post_rpc(req, res) {
                                 request: req
                             };
 
-                            db[table](sessionState).Add(array, (meta) => {
+                            db[table](sessionState).Add(array, (meta)=>{
                                 res.json([{
                                     meta: meta.meta,
                                     code: meta.code,
@@ -101,11 +117,11 @@ function post_rpc(req, res) {
         });
     } else {
         handler(req, res, function (results) {
-            if (isCsv) {
+            if(isCsv) {
                 // https://github.com/mrodrig/json-2-csv/blob/stable/README.md
                 //git+https://github.com/akrasnov87/json-2-csv.git
                 converter.json2csv(results[0].result.records, (err, csv) => {
-                    res.send(err || csv);
+                    res.send(err||csv);
                 }, {
                     prependHeader: true,
                     unwindArrays: true,

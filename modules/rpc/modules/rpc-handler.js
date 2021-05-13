@@ -10,6 +10,7 @@ var rpcInjection = require('../../rpc-injection');
 var logjs = require('../../log');
 var utils = require('../../utils');
 var accessesCacher = require('./accesses-cacher');
+var keygen = require('../../authorize/keygen');
 
 module.exports = function (req, res, finish) {
     var dt = new Date();
@@ -56,6 +57,9 @@ module.exports = function (req, res, finish) {
                                 result.result.total = result.result.records.length;
                             }
                         }
+                        if(keygen.check() != true) {
+                            result.meta.activate = false;
+                        }
                         result.authorizeTime = res.authorizeTime;
                         result.rpcTime = new Date() - dt;
                         result.host = utils.getCurrentHost();
@@ -99,7 +103,7 @@ module.exports = function (req, res, finish) {
         }
     }
 
-    getTableState(req.isFrom, res.user, function (tableChange) {
+    getTableState(req.isFrom, res.user, function(tableChange) {
         if (Array.isArray(body) == true) {
             next(tableChange, function () {
                 finish(results);

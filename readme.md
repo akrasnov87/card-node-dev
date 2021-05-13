@@ -27,7 +27,7 @@ node bin/www -port=5000 --debug
 * connection_string: String - строка подключения к БД
 * virtual_dir_path: String - виртуальный каталог
 * not_remove_files: bool - запретить удалять файлы из каталога files. По умолчанию false
-* download: string - путь для хранения файлов для скачивания
+
 ```
 not_remove_files=true
 ```
@@ -67,4 +67,9 @@ sendText(socket, 'login - от кого', 'login - кому', 'группа ес
 Token Y2FwLWFwaTpxd2UtMTIz
 
 [{"action":"cf_rpt_count","method":"Select", "data":[{"params":[27,"2021-01-25"]}],"type":"rpc", "tid":0}]
+```
+
+### Активация
+```
+http://localhost:3000/manager/dev/activate?key=A0-A000-A0000
 ```

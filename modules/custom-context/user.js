@@ -64,7 +64,6 @@ exports.user = function (session) {
                 delete data.s_salt;
                 delete data.s_hash;
                 delete data.c_login;
-                delete data.b_pgcrypto;
 
                 data.id = session.user.id;
                 db.pd_users().Update(data, function (result) {
@@ -92,7 +91,6 @@ exports.user = function (session) {
                 delete data.s_salt;
                 delete data.s_hash;
                 delete data.c_login;
-                delete data.b_pgcrypto;
 
                 if(data.id == null || data.id == undefined || data.id == '') {
                     callback(result_layout.error(new Error('Идентификатор пользователя не найден')));
@@ -192,47 +190,29 @@ exports.user = function (session) {
         createUser: function (data, callback) {
             if(session.isAuthorize) {
                 var login = data.login;
-                // применяется ли шифрованние на стороне postgresql 
-                var pgcrypto = data.pgcrypto || false;
-
                 var password = data.password.toString();
 
-                function crypto(innerCallback) {
-                    if(pgcrypto == true) {
-                        db.provider.db().query("select crypt('" + password + "', gen_salt('bf', 8));", null, (err, rows, time) => {
-                            innerCallback({
-                                passwordHash: rows.rows[0].crypt,
-                                salt: ''
-                            });
-                        });
-                    } else {
-                        innerCallback(salt.generate(password));
-                    }
-                }
-
                 if(login && password) {
-                    crypto(function(obj) {
-                        db.pd_users().Count({filter:[{"property": "c_login", "value": login}]}, function(result) {
-                            if(result.meta.success && result.result.total == 0) {
-                                db.pd_users().Add({ 
-                                    c_login: login, 
-                                    s_salt: obj.salt, 
-                                    s_hash: obj.passwordHash, 
-                                    b_disabled: false, 
-                                    sn_delete: false,
-                                    b_pgcrypto: pgcrypto 
-                                }, function(result) {
-                                    if(result.meta.success) {
-                                        var id = result.result.records.rows[0].id;
-                                        callback(result_layout.ok([{id:id}]));
-                                    } else {
-                                        callback(result_layout.error(new Error(result.meta.msg)));
-                                    }
-                                });
-                            } else {
-                                callback(result_layout.error(new Error('Пользователь с указанным логином присутствует в системе.')));
-                            }
-                        });
+                    var obj = salt.generate(password);
+                    db.pd_users().Count({filter:[{"property": "c_login", "value": login}]}, function(result) {
+                        if(result.meta.success && result.result.total == 0) {
+                            db.pd_users().Add({ 
+                                c_login: login, 
+                                s_salt: obj.salt, 
+                                s_hash: obj.passwordHash, 
+                                b_disabled: false, 
+                                sn_delete: false 
+                            }, function(result) {
+                                if(result.meta.success) {
+                                    var id = result.result.records.rows[0].id;
+                                    callback(result_layout.ok([{id:id}]));
+                                } else {
+                                    callback(result_layout.error(new Error(result.meta.msg)));
+                                }
+                            });
+                        } else {
+                            callback(result_layout.error(new Error('Пользователь с указанным логином присутствует в системе.')));
+                        }
                     });
                 } else {
                     callback(result_layout.error(new Error('Одно из обязательных полей равно null.')));

@@ -23,11 +23,8 @@ var packager = require('mobnius-packager/index-v2');
  */
 module.exports = function (user, io, status) {
     var obj = {
-        id: user.id,
-        type: status,
-        c_login: user.c_login,
-        c_claims: user.c_claims,
-        c_version: user.c_version
+        userId: user.id,
+        type: status
     };
 
     var response = {
@@ -52,6 +49,5 @@ module.exports = function (user, io, status) {
     pkg.blockTo('to0', response);
 
     io.to('manager').emit('network', pkg.flush(0, 'NML'));
-    io.to('master').emit('network', JSON.stringify(obj));
     logjs.debug('Получен статус сети ' + status + ' от пользователя ' + user.c_login + ' в ' + new Date().toISOString());
 }

@@ -215,11 +215,3 @@ exports.getVirtualDirPath = function () {
 exports.getConnectionString = function () {
     return args.connection_string || conf.get('connectionString');
 }
-
-/**
- *
- * @returns {string}
- */
- exports.getRedis = function () {
-    return args.redis_host || conf.get('redis_host');
-}

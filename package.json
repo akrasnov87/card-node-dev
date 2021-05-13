@@ -1,6 +1,6 @@
 {
     "name": "node-service",
-    "version": "3.513.464",
+    "version": "3.514.818",
     "birthday": "2019-12-16",
     "description": "Служба для получения данных от PostgreSQL",
     "main": "bin/www",
@@ -24,8 +24,10 @@
         "log4js": "^4.2.0",
         "mime-types": "^2.1.27",
         "mkdir-recursive": "^0.4.0",
+        "mobnius-extjs-view-generate": "git://git.appcode.pw/mobnius/extjs-view-generate.git",
         "mobnius-packager": "git://git.appcode.pw/mobnius/packager.git",
         "mobnius-pg-dbcontext": "git://git.appcode.pw/mobnius/pg-dbcontext.git",
+        "mobnius-rpc-file-manager": "git://git.appcode.pw/mobnius/rpc-file-manager.git",
         "mobnius-schema-reader": "git://git.appcode.pw/mobnius/schema-reader.git",
         "moment": "^2.29.1",
         "morgan": "^1.10.0",

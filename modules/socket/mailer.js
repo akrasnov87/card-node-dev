@@ -10,7 +10,7 @@ var handler = require('../rpc/modules/rpc-handler');
  */
 exports.to = to;
 
-function to(req, res, buffer) {
+function to (req, res, buffer) {
     var socket = req.socket;
     var pkgRead = packager.read(buffer);
     pkgRead.readData();
@@ -21,15 +21,15 @@ function to(req, res, buffer) {
     var toClient = item.fn_user_to;
     var fromClient = item.fn_user_from;
 
-    if (item.c_group) {
+    if(item.c_group) {
         logjs.debug('Отправка группе ' + item.c_group + ' от ' + fromClient);
         socket.broadcast.to(item.c_group).emit('mailer-group-from', buffer);
     } else {
         var users = userCollection.getUsers(toClient);
         req.body = data.to;
         handler(req, res, function (results) {
-            if (users.length > 0) {
-
+            if (users.length > 0) {  
+                
                 // тут нужно сформировать новый пакет
                 var pkg = packager.write();
                 pkg.meta(false, 'mail', 'v2', Date.now().toString());
@@ -40,7 +40,7 @@ function to(req, res, buffer) {
                 logjs.debug('Отправка ' + users.length + ' клиенту(ам) с идентификаторами ' + toClient + ' от ' + fromClient);
                 for (var i = 0; i < users.length; i++) {
                     var user = users[i];
-
+                    
                     socket.emit('mailer-from', bufferResult);
                     user.emit('mailer-from', bufferResult);
                 }
@@ -61,10 +61,10 @@ function to(req, res, buffer) {
  * @param toUser {string} кому
  * @param group {string} группе
  */
-exports.sendText = function (req, res, obj) {
+exports.sendText = function(req, res, obj) {
     var pkg = packager.write();
     pkg.meta(false, 'mail', 'v2', Date.now().toString());
     pkg.blockTo('to0', { action: 'cd_notifications', method: 'Add', data: [[obj]], tid: 0, type: 'rpc' });
 
-    to(req, res, pkg.flush(0, 'NML'));
+    to(req, res, pkg.flush(0, 'ZIP'));
 }
