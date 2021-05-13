@@ -1,0 +1,181 @@
+/**
+ * @file modules/dbcontext.js
+ * @project node-service
+ * @author Александр
+ * @todo автоматически сгенеренный код
+ */
+var provider = require('mobnius-pg-dbcontext');
+var filter = require('./rpc/modules/access-filter');
+var utils = require('./utils');
+provider.initPool(utils.getConnectionString(), global.schemas);
+var args = require("args-parser")(process.argv);
+
+/**
+ * Специальный компонент для создания ручных запросов
+ * @example
+ * // https://node-postgres.com/
+ * db.provider.db().query(queryText:string, params:any[], function(err, rows, time, options) {
+ *      // , где queryText - строка запроса, params - параметры
+ *      if(!err) {
+ *          // rows - результат выполнения, time - время запроса в милисекундах, options - дополнительные данные
+ *      } else {
+ *          console.log(err);
+ *      }
+ * }); 
+ */
+exports.provider = provider;
+<%items.forEach(function(i) {%><%if(i.TABLE_TYPE == 'BASE TABLE') {%>
+/**
+ * <%=i.TABLE_TITLE%>
+ * @example
+ * Тип: <%=i.TABLE_TYPE%>
+ * Первичный ключ: <%=i.PRIMARY_KEY%>
+ * Схема: <%=i.TABLE_SCHEMA%>
+ * Поля:<%i.FIELDS.forEach(function(j){%>
+ *      <%=j.COLUMN_NAME%>:<%=j.DATA_TYPE%><%if(j.REFERENCED_COLUMN_NAME){%> (<%=j.REFERENCED_TABLE_SCHEMA%>.<%=j.REFERENCED_TABLE_NAME%>.<%=j.REFERENCED_COLUMN_NAME%>)<%}%> - <%=j.COLUMN_COMMENT%><%})%>
+ * // примеры выборки
+ * [{ action: "<%=i.TABLE_NAME%>", method: "Query", data: [{ }], type: "rpc", tid: 0 }]
+ * // примеры выборки через функцию
+ * [{ action: "cf_mui_<%=i.TABLE_NAME%>", method: "Select", data: [{ }], type: "rpc", tid: 0 }]
+ * // примеры добавления
+ * [{ action: "<%=i.TABLE_NAME%>", method: "Add", data: [{ }], type: "rpc", tid: 0 }]
+ * // примеры обновления
+ * [{ action: "<%=i.TABLE_NAME%>", method: "Update", data: [{<%=i.PRIMARY_KEY%>:any ...}|[{<%=i.PRIMARY_KEY%>:any ...}], type: "rpc", tid: 0 }]
+ * // примеры создания или обновления
+ * [{ action: "<%=i.TABLE_NAME%>", method: "AddOrUpdate", data: [{<%=i.PRIMARY_KEY%>:any ...}], type: "rpc", tid: 0 }]
+ * // примеры удаления
+ * [{ action: "<%=i.TABLE_NAME%>", method: "Delete", data: [{<%=i.PRIMARY_KEY%>:any ...}|[{<%=i.PRIMARY_KEY%>:any ...}], type: "rpc", tid: 0 }]
+ * // примеры получения количества записей
+ * [{ action: "<%=i.TABLE_NAME%>", method: "Count", data: [{ }], type: "rpc", tid: 0 }]
+ */
+exports.<%=i.TABLE_NAME%> = function (session) {
+    return {
+        Query: function (query_param, callback) {
+            onQueryListener('<%=i.TABLE_NAME%>', 'QUERY', '<%=i.PRIMARY_KEY%>', query_param, session);
+            provider.select('<%=i.TABLE_SCHEMA%>', '<%=i.TABLE_NAME%>', query_param, filter.security(session), callback);
+        },
+        Select: function (query_param, callback) {
+            onQueryListener('<%=i.TABLE_NAME%>', 'SELECT', '<%=i.PRIMARY_KEY%>', query_param, session);
+            provider.select('<%=i.TABLE_SCHEMA%>', 'cf_mui_<%=i.TABLE_NAME%>()', query_param, filter.security(session), callback);
+        },
+        Add: function (data, callback) {
+            provider.insert('<%=i.TABLE_SCHEMA%>', '<%=i.TABLE_NAME%>', data, function() {
+                onQueryListener('<%=i.TABLE_NAME%>', 'INSERT', '<%=i.PRIMARY_KEY%>', data, session);
+                callback(arguments[0]);
+            });
+        },
+        AddOrUpdate: function (data, callback) {
+            provider.insertOrUpdate('<%=i.TABLE_SCHEMA%>', '<%=i.TABLE_NAME%>', '<%=i.PRIMARY_KEY%>', data, function() {
+                onQueryListener('<%=i.TABLE_NAME%>', 'INSERT_OR_UPDATE', '<%=i.PRIMARY_KEY%>', data, session);
+                callback(arguments[0]);
+            });
+        },
+        Update: function (data, callback) {
+            provider.update('<%=i.TABLE_SCHEMA%>', '<%=i.TABLE_NAME%>', '<%=i.PRIMARY_KEY%>', data, function() {
+                onQueryListener('<%=i.TABLE_NAME%>', 'UPDATE', '<%=i.PRIMARY_KEY%>', data, session);
+                callback(arguments[0]);
+            });
+        },
+        Delete: function (data, callback) {
+            provider.delete('<%=i.TABLE_SCHEMA%>', '<%=i.TABLE_NAME%>', '<%=i.PRIMARY_KEY%>', data, function() {
+                onQueryListener('<%=i.TABLE_NAME%>', 'DELETE', '<%=i.PRIMARY_KEY%>', data, session);
+                callback(arguments[0]);
+            });
+        },
+        Count: function (query_param, callback) {
+            onQueryListener('<%=i.TABLE_NAME%>', 'COUNT', '<%=i.PRIMARY_KEY%>', query_param, session);
+            provider.count('<%=i.TABLE_SCHEMA%>', '<%=i.TABLE_NAME%>', query_param, callback);
+        }
+    }
+}
+<%} else if(i.TABLE_TYPE == 'VIEW') {%>
+/**
+ * <%=i.TABLE_TITLE%>
+ * @example
+ * Тип: <%=i.TABLE_TYPE%>
+ * Схема: <%=i.TABLE_SCHEMA%>
+ * Поля:<%i.FIELDS.forEach(function(j){%>
+ *      <%=j.COLUMN_NAME%>:<%=j.DATA_TYPE%> - <%=j.COLUMN_COMMENT%><%})%>
+ * // примеры выборки
+ * [{ action: "<%=i.TABLE_NAME%>", method: "Query", data: [{ }], type: "rpc", tid: 0 }]
+ * // примеры получения количества записей
+ * [{ action: "<%=i.TABLE_NAME%>", method: "Count", data: [{ }], type: "rpc", tid: 0 }]
+ */
+exports.<%=i.TABLE_NAME%> = function (session) {
+    return {
+        Query: function (query_param, callback) {
+            onQueryListener('<%=i.TABLE_NAME%>', 'QUERY', '<%=i.PRIMARY_KEY%>', query_param, session);
+            provider.select('<%=i.TABLE_SCHEMA%>', '<%=i.TABLE_NAME%>', query_param, filter.security(session), callback);
+        },
+        Count: function (query_param, callback) {
+            onQueryListener('<%=i.TABLE_NAME%>', 'COUNT', '<%=i.PRIMARY_KEY%>', query_param, session);
+            provider.count('<%=i.TABLE_SCHEMA%>', '<%=i.TABLE_NAME%>', query_param, callback);
+        }
+    }
+}
+<%} else {%>
+/**
+ * <%=i.TABLE_TITLE%>
+ * @example
+ * Тип: <%=i.TABLE_TYPE%>
+ * Схема: <%=i.TABLE_SCHEMA%> 
+ * // примеры выборки
+ * [{ action: "<%=i.TABLE_NAME%>", method: "Query", data: [{ }], type: "rpc", tid: 0 }]<%if(i.RETURN_TYPE == "record") {%>
+ * // примеры выборки через функцию
+ * [{ action: "<%=i.TABLE_NAME%>", method: "Select", data: [{ }], type: "rpc", tid: 0 }]<%}%>
+ */
+exports.<%=i.TABLE_NAME%> = function (session) {
+    return {
+        Query: function (query_param, callback) {
+            provider.call('<%=i.TABLE_SCHEMA%>', '<%=i.TABLE_NAME%>', query_param.params, function() {
+                onQueryListener('<%=i.TABLE_NAME%>', 'QUERY', null, query_param, session);
+                callback(arguments[0]);
+            });
+        }<%if(i.RETURN_TYPE == "record") {%>,
+        Select: function (query_param, callback) {
+            provider.select('<%=i.TABLE_SCHEMA%>', '<%=i.TABLE_NAME%>()', query_param, filter.security(session), function() {
+                onQueryListener('<%=i.TABLE_NAME%>', 'SELECT', null, query_param, session);
+                callback(arguments[0]);
+            });
+        }<%}%>
+    }
+}
+<%}%><%});%>
+
+/**
+ * Проверка авторизации. 
+ * Применяется только при включенной авторизации
+ * @function
+ * @param {string} login логин пользователя
+ * @param {function} callback функция обратного вызова
+ * @example
+ * db.getUser('', function(data) {
+ *      if(data.meta.success) {
+ *      
+ *      }   
+ * });
+ */
+exports.getUser = function(login, callback) {
+    this.sv_users().Query({
+        filter: [{
+            property: 'c_login',
+            value: login
+        }]
+    }, function(data) {
+        callback(data);
+    });
+}
+
+function onQueryListener(action, method, idName, data, session) {
+    if(args.debug) {
+        var item = (data && typeof data.length == 'number') ? data[0] : data;
+        provider.insert('core', 'cd_action_log_user', { 
+            integer_id: (item && typeof item[idName] == 'number') ? item[idName] : null,  
+            uuid_id: (item && typeof item[idName] == 'string') ? item[idName] : null,
+            c_action: action,
+            c_method: method,
+            f_user: session ? session.user.id : -1,
+            jb_data: data ? (typeof data == 'string' ? data : JSON.stringify(data)) : '[{}]'
+        }, function() {});
+    }
+}

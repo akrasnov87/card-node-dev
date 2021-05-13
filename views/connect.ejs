@@ -1,0 +1,47 @@
+<html>
+    <head>
+        <script src="socket.io/socket.io.js"></script>
+        <script>
+            var count = 0;
+            var sec = location.href.indexOf('https://') == 0
+            var socket = io.connect((sec ? 'https://' : 'http://') + '<%=url%>', { path: '<%=vPath%>/socket.io', query: {
+                token: '<%=token%>',
+                transports: ['websocket']
+            } });
+            socket.on('registry', function (data) {
+                var users = JSON.parse('<%-JSON.stringify(items)%>')
+                console.log('регистрация: ' + data.data.success)
+                count = users.length;
+                document.title = 'Активно: ' + count;
+
+                for(var i in users) {
+                    users[i].type = 'ONLINE'
+                    append(users[i])
+                }
+            });
+            socket.on('network', function(data) {
+                var item = JSON.parse(data);
+                if(item.type == 'ONLINE') {
+                    count++;
+                } else {
+                    count--;
+                }
+                document.title = 'Активно: ' + count;
+                append(JSON.parse(data))
+            })
+            function append(user) {
+                var info = document.getElementById('info');
+                info.value += (number(new Date().getHours()) + ':' + number(new Date().getMinutes()) + ':' + number(new Date().getSeconds()) + '|' + user.type + '|' + user.id + '|' + user.c_login + '|' + user.c_claims + '|' + user.c_version) + '\n'
+            }
+
+            function number(n) {
+                return n.toString().length == 1 ? '0' + n : n
+            }
+            </script>
+    </head>
+    <body>
+        <div id="reg"></div>
+
+        <textarea id="info" style="width: 100%;height: 100%;"></textarea>
+    </body>
+</html>
