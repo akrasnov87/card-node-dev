@@ -432,27 +432,41 @@ exports.cs_setting_types = function (session) {
  * Первичный ключ: id
  * Схема: core
  * Поля:
- *      c_accept:text - Дата и номер принятия решения
- *      c_account:text - Постановление о постановке на учет
- *      c_address:text - Адрес, телефон
- *      c_document:text - Реквизиты документа, удостоверяющего личность
- *      c_earth:text - Кадастровй номер земельного участка
- *      c_fio:text - Фамилия, Имя, Отчество заявителя
- *      c_import_doc:text - Документ из которого импортировались данные
- *      c_import_warning:text - Замечания после импорта
- *      c_intent:text - Цель использования земельного участка
+ *      b_administrative:boolean - Административная ответственность
+ *      ba_foto:bytea - Фото
+ *      b_criminal:boolean - Уголовная ответственность
+ *      c_biografy:text - Биографическая информация
+ *      c_city_life:text - Город (адрес проживания)
+ *      c_city_reg:text - Город (адрес регистрации)
+ *      c_education:text - Образование
+ *      c_first_name:text - Фамилия
+ *      c_form_event:text - Форма проведения
+ *      c_house_life:text - Дом (адрес проживания)
+ *      c_house_reg:text - Дом (адрес регистрации)
+ *      c_last_name:text - Имя
+ *      c_middle_name:text - Отчество
  *      c_notice:text - Примечание
- *      c_time:text - Время подачи заявления
- *      d_birthday:date - Дата рождения
- *      d_date:timestamp with time zone - Дата подачи заявления
- *      d_take_off_message:date - Сообщение заявителю о снятии с учета
- *      d_take_off_solution:date - Решение о снятии с учета
+ *      c_notify_result:text - Результаты рассмотрения уведомления
+ *      c_premise_life:text - Квартира (адрес проживания)
+ *      c_premise_reg:text - Квартира (адрес регистрации)
+ *      c_show_material:text - Средства наглядной агитации
+ *      c_street_life:text - Улица (адрес проживания)
+ *      c_street_reg:text - Улица (адрес регистрации)
+ *      c_tag:text - Метка
+ *      c_target:text - Цель
+ *      c_time_place_after:text - Место и время проведения
+ *      c_time_place_before:text - Место и время проведения
+ *      c_work_place:text - Место работы
+ *      d_barthday:date - Дата рождения
+ *      d_notify:date - Уведомления
+ *      dx_created:timestamp with time zone - Дата создания
  *      f_user:integer (core.pd_users.id) - Пользователь
  *      id:uuid - Идентификатор
- *      jb_child:jsonb - Вложения
- *      n_number:integer - Номер
- *      n_year:smallint - Возраст на момент постановки
- *      sn_delete:boolean - sn_delete
+ *      n_count_after:integer - Принятое количество участников
+ *      n_count_before:integer - Заявленное количество участников
+ *      sn_delete:boolean - Признак удаленности
+ *      с_arrest:text - Задержание
+ *      с_violation:text - Нарушения
  * // примеры выборки
  * [{ action: "dd_documents", method: "Query", data: [{ }], type: "rpc", tid: 0 }]
  * // примеры выборки через функцию

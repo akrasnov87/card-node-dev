@@ -29,7 +29,7 @@ module.exports = function () {
         var id = req.query.id;
         var files = req.files;
 
-        db.provider.update('core', 'dd_documents', {
+        db.provider.update('core', 'dd_documents', 'id', {
             id: id,
             ba_foto: files["foto"].data
         }, function (data) {
