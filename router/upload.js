@@ -14,7 +14,7 @@ module.exports = function () {
         var id = req.query.id;
         var filters = [{ property: "id", operator: "=", value: id }];
 
-        db.provider.select('core', 'dd_documents', { limit: 1, select: 'id, ba_foto', filter: filters }, null, function (data) {
+        db.provider.select('core', 'dd_files', { limit: 1, select: 'id, ba_foto', filter: filters }, null, function (data) {
             if (data.meta.success) {
                 res.setHeader('Content-Disposition', 'attachment; filename=' + id + '.jpg');
                 res.setHeader("Content-Type", 'image/jpeg');
@@ -29,7 +29,7 @@ module.exports = function () {
         var id = req.query.id;
         var files = req.files;
 
-        db.provider.update('core', 'dd_documents', 'id', {
+        db.provider.update('core', 'dd_files', 'id', {
             id: id,
             ba_foto: files["foto"].data
         }, function (data) {
