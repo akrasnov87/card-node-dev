@@ -433,7 +433,6 @@ exports.cs_setting_types = function (session) {
  * Схема: core
  * Поля:
  *      b_administrative:boolean - Административная ответственность
- *      ba_foto:bytea - Фото
  *      b_criminal:boolean - Уголовная ответственность
  *      c_biografy:text - Биографическая информация
  *      c_city_life:text - Город (адрес проживания)
@@ -519,6 +518,71 @@ exports.dd_documents = function (session) {
         Count: function (query_param, callback) {
             onQueryListener('dd_documents', 'COUNT', 'id', query_param, session);
             provider.count('core', 'dd_documents', query_param, callback);
+        }
+    }
+}
+
+/**
+ * 
+ * @example
+ * Тип: BASE TABLE
+ * Первичный ключ: id
+ * Схема: core
+ * Поля:
+ *      ba_foto:bytea - Файл
+ *      id:uuid - id
+ * // примеры выборки
+ * [{ action: "dd_files", method: "Query", data: [{ }], type: "rpc", tid: 0 }]
+ * // примеры выборки через функцию
+ * [{ action: "cf_mui_dd_files", method: "Select", data: [{ }], type: "rpc", tid: 0 }]
+ * // примеры добавления
+ * [{ action: "dd_files", method: "Add", data: [{ }], type: "rpc", tid: 0 }]
+ * // примеры обновления
+ * [{ action: "dd_files", method: "Update", data: [{id:any ...}|[{id:any ...}], type: "rpc", tid: 0 }]
+ * // примеры создания или обновления
+ * [{ action: "dd_files", method: "AddOrUpdate", data: [{id:any ...}], type: "rpc", tid: 0 }]
+ * // примеры удаления
+ * [{ action: "dd_files", method: "Delete", data: [{id:any ...}|[{id:any ...}], type: "rpc", tid: 0 }]
+ * // примеры получения количества записей
+ * [{ action: "dd_files", method: "Count", data: [{ }], type: "rpc", tid: 0 }]
+ */
+exports.dd_files = function (session) {
+    return {
+        Query: function (query_param, callback) {
+            onQueryListener('dd_files', 'QUERY', 'id', query_param, session);
+            provider.select('core', 'dd_files', query_param, filter.security(session), callback);
+        },
+        Select: function (query_param, callback) {
+            onQueryListener('dd_files', 'SELECT', 'id', query_param, session);
+            provider.select('core', 'cf_mui_dd_files()', query_param, filter.security(session), callback);
+        },
+        Add: function (data, callback) {
+            provider.insert('core', 'dd_files', data, function() {
+                onQueryListener('dd_files', 'INSERT', 'id', data, session);
+                callback(arguments[0]);
+            });
+        },
+        AddOrUpdate: function (data, callback) {
+            provider.insertOrUpdate('core', 'dd_files', 'id', data, function() {
+                onQueryListener('dd_files', 'INSERT_OR_UPDATE', 'id', data, session);
+                callback(arguments[0]);
+            });
+        },
+        Update: function (data, callback) {
+            provider.update('core', 'dd_files', 'id', data, function() {
+                onQueryListener('dd_files', 'UPDATE', 'id', data, session);
+                callback(arguments[0]);
+            });
+        },
+        Delete: function (data, callback) {
+            provider.delete('core', 'dd_files', 'id', data, function() {
+                onQueryListener('dd_files', 'DELETE', 'id', data, session);
+                callback(arguments[0]);
+            });
+        },
+        Count: function (query_param, callback) {
+            onQueryListener('dd_files', 'COUNT', 'id', query_param, session);
+            provider.count('core', 'dd_files', query_param, callback);
         }
     }
 }
