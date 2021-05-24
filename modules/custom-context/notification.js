@@ -90,7 +90,7 @@ exports.notification = function (session) {
          */
         changeStatusAll: function (data, callback) {
             if (session.isAuthorize == true) {
-                db.provider.db().query('update core.cd_notifications set b_sended = true, b_readed = true where fn_user_to = $1 and b_sended = false or b_readed = false;', [session.user.id], function (err, rows, time, options) {
+                db.provider.db().query('update core.cd_notifications set b_sended = true, b_readed = true where fn_user_to = $1 and (b_sended = false or b_readed = false);', [session.user.id], function (err, rows, time, options) {
                     if (err) {
                         callback(result_layout.error(err));
                     } else {

@@ -1,6 +1,6 @@
 {
     "name": "node-service",
-    "version": "3.524.879",
+    "version": "3.525.810",
     "birthday": "2019-12-16",
     "description": "Служба для получения данных от PostgreSQL",
     "main": "bin/www",
