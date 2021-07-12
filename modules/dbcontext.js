@@ -363,6 +363,74 @@ exports.cf_mui_sd_table_change = function (session) {
  * Поля:
  *      b_default:boolean - По умолчанию
  *      b_disabled:boolean - Отключено
+ *      c_name:text - Наименование
+ *      id:integer - Идентификатор
+ *      n_order:integer - Сортировка
+ * // примеры выборки
+ * [{ action: "cs_event_types", method: "Query", data: [{ }], type: "rpc", tid: 0 }]
+ * // примеры выборки через функцию
+ * [{ action: "cf_mui_cs_event_types", method: "Select", data: [{ }], type: "rpc", tid: 0 }]
+ * // примеры добавления
+ * [{ action: "cs_event_types", method: "Add", data: [{ }], type: "rpc", tid: 0 }]
+ * // примеры обновления
+ * [{ action: "cs_event_types", method: "Update", data: [{id:any ...}|[{id:any ...}], type: "rpc", tid: 0 }]
+ * // примеры создания или обновления
+ * [{ action: "cs_event_types", method: "AddOrUpdate", data: [{id:any ...}], type: "rpc", tid: 0 }]
+ * // примеры удаления
+ * [{ action: "cs_event_types", method: "Delete", data: [{id:any ...}|[{id:any ...}], type: "rpc", tid: 0 }]
+ * // примеры получения количества записей
+ * [{ action: "cs_event_types", method: "Count", data: [{ }], type: "rpc", tid: 0 }]
+ */
+exports.cs_event_types = function (session) {
+    return {
+        Query: function (query_param, callback) {
+            onQueryListener('cs_event_types', 'QUERY', 'id', query_param, session);
+            provider.select('core', 'cs_event_types', query_param, filter.security(session), callback);
+        },
+        Select: function (query_param, callback) {
+            onQueryListener('cs_event_types', 'SELECT', 'id', query_param, session);
+            provider.select('core', 'cf_mui_cs_event_types()', query_param, filter.security(session), callback);
+        },
+        Add: function (data, callback) {
+            provider.insert('core', 'cs_event_types', data, function() {
+                onQueryListener('cs_event_types', 'INSERT', 'id', data, session);
+                callback(arguments[0]);
+            });
+        },
+        AddOrUpdate: function (data, callback) {
+            provider.insertOrUpdate('core', 'cs_event_types', 'id', data, function() {
+                onQueryListener('cs_event_types', 'INSERT_OR_UPDATE', 'id', data, session);
+                callback(arguments[0]);
+            });
+        },
+        Update: function (data, callback) {
+            provider.update('core', 'cs_event_types', 'id', data, function() {
+                onQueryListener('cs_event_types', 'UPDATE', 'id', data, session);
+                callback(arguments[0]);
+            });
+        },
+        Delete: function (data, callback) {
+            provider.delete('core', 'cs_event_types', 'id', data, function() {
+                onQueryListener('cs_event_types', 'DELETE', 'id', data, session);
+                callback(arguments[0]);
+            });
+        },
+        Count: function (query_param, callback) {
+            onQueryListener('cs_event_types', 'COUNT', 'id', query_param, session);
+            provider.count('core', 'cs_event_types', query_param, callback);
+        }
+    }
+}
+
+/**
+ * Тип настройки
+ * @example
+ * Тип: BASE TABLE
+ * Первичный ключ: id
+ * Схема: core
+ * Поля:
+ *      b_default:boolean - По умолчанию
+ *      b_disabled:boolean - Отключено
  *      c_const:text - Константа
  *      c_name:text - Наименование
  *      c_short_name:text - Краткое наименование
@@ -434,12 +502,12 @@ exports.cs_setting_types = function (session) {
  * Поля:
  *      b_administrative:boolean - Административная ответственность
  *      b_criminal:boolean - Уголовная ответственность
+ *      c_arrest:text - Задержание
  *      c_biografy:text - Биографическая информация
  *      c_city_life:text - Город (адрес проживания)
  *      c_city_reg:text - Город (адрес регистрации)
  *      c_education:text - Образование
  *      c_first_name:text - Фамилия
- *      c_form_event:text - Форма проведения
  *      c_house_life:text - Дом (адрес проживания)
  *      c_house_reg:text - Дом (адрес регистрации)
  *      c_last_name:text - Имя
@@ -449,23 +517,25 @@ exports.cs_setting_types = function (session) {
  *      c_premise_life:text - Квартира (адрес проживания)
  *      c_premise_reg:text - Квартира (адрес регистрации)
  *      c_show_material:text - Средства наглядной агитации
+ *      c_soc_link:text - Ссылки на социальные сети
  *      c_street_life:text - Улица (адрес проживания)
  *      c_street_reg:text - Улица (адрес регистрации)
  *      c_tag:text - Метка
  *      c_target:text - Цель
  *      c_time_place_after:text - Место и время проведения
  *      c_time_place_before:text - Место и время проведения
+ *      c_violation:text - Нарушения
  *      c_work_place:text - Место работы
- *      d_barthday:date - Дата рождения
+ *      d_birthday:date - Дата рождения
+ *      d_date_place:date - Дата проведения
  *      d_notify:date - Уведомления
  *      dx_created:timestamp with time zone - Дата создания
+ *      f_event_type:integer (core.cs_event_types.id) - Форма проведения
  *      f_user:integer (core.pd_users.id) - Пользователь
  *      id:uuid - Идентификатор
  *      n_count_after:integer - Принятое количество участников
  *      n_count_before:integer - Заявленное количество участников
  *      sn_delete:boolean - Признак удаленности
- *      с_arrest:text - Задержание
- *      с_violation:text - Нарушения
  * // примеры выборки
  * [{ action: "dd_documents", method: "Query", data: [{ }], type: "rpc", tid: 0 }]
  * // примеры выборки через функцию
@@ -530,7 +600,11 @@ exports.dd_documents = function (session) {
  * Схема: core
  * Поля:
  *      ba_foto:bytea - Файл
+ *      d_date:date - d_date
+ *      dx_created:timestamp with time zone - dx_created
+ *      f_document:uuid (core.dd_documents.id) - f_document
  *      id:uuid - id
+ *      sn_delete:boolean - sn_delete
  * // примеры выборки
  * [{ action: "dd_files", method: "Query", data: [{ }], type: "rpc", tid: 0 }]
  * // примеры выборки через функцию
@@ -604,7 +678,7 @@ exports.dd_files = function (session) {
  *      c_name:text - Табл./Предст./Функц.
  *      c_path:text - Путь в файловой системе
  *      f_role:integer (core.pd_roles.id) - Роль
- *      f_user:integer (core.pd_users.id) - Пользователь
+ *      f_user:integer - Пользователь
  *      id:integer - Идентификатор
  *      sn_delete:boolean - Удален
  * // примеры выборки
@@ -814,8 +888,8 @@ exports.pd_userinroles = function (session) {
  *      c_phone:text - Телефон
  *      id:integer - Идентификатор
  *      s_hash:text - Hash
- *      sn_delete:boolean - Удален
  *      s_salt:text - Salt
+ *      sn_delete:boolean - Удален
  * // примеры выборки
  * [{ action: "pd_users", method: "Query", data: [{ }], type: "rpc", tid: 0 }]
  * // примеры выборки через функцию
