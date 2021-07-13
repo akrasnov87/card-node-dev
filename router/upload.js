@@ -17,7 +17,7 @@ module.exports = function () {
 
         db.provider.select('core', 'dd_files', { limit: 1, select: 'id, ba_foto', filter: filters, sort: sort }, null, function (data) {
             if (data.meta.success && data.result.records.length > 0) {
-                res.setHeader('Content-Disposition', 'attachment; filename=' + id + '.jpg');
+                //res.setHeader('Content-Disposition', 'attachment; filename=' + id + '.jpg');
                 res.setHeader("Content-Type", 'image/jpeg');
                 res.send(data.result.records[0].ba_foto);
             } else {
@@ -33,7 +33,7 @@ module.exports = function () {
         db.provider.select('core', 'dd_files', { select: 'id, ba_foto', filter: filters }, null, function (data) {
             if (data.meta.success && data.result.records.length > 0) {
 
-                res.setHeader('Content-Disposition', 'attachment; filename=' + id + '.jpg');
+                //res.setHeader('Content-Disposition', 'attachment; filename=' + id + '.jpg');
                 res.setHeader("Content-Type", 'image/jpeg');
                 if (data.result.records[0]["ba_foto"]) {
                     res.send(data.result.records[0]["ba_foto"]);
